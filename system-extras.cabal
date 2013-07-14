@@ -1,0 +1,22 @@
+name:                system-extras
+version:             0.1.0
+synopsis:            Extra functionality for some System functions.
+-- description:
+homepage:            https://github.com/mitchellwrosen/system-extras
+bug-reports:         https://github.com/mitchellwrosen/system-extras/issues
+license:             BSD3
+license-file:        LICENSE
+author:              Mitchell Rosen
+maintainer:          mitchellwrosen@gmail.com
+category:            System
+build-type:          Simple
+cabal-version:       >=1.8
+tested-with:         GHC == 7.6.3
+
+library
+  exposed-modules:     System.Extras
+  -- other-modules:
+  build-depends:       base ==4.6.*,
+                       mtl ==2.1.*,
+                       either ==3.4.*,
+                       process ==1.1.*
