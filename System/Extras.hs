@@ -9,41 +9,40 @@ import System.Exit (ExitCode(..), exitWith)
 import System.IO (hPutStrLn, stderr)
 import System.Process (readProcessWithExitCode)
 
--- A monad appropriate for system calls. Runs in IO, and in the case of error,
+-- | A monad appropriate for system calls. Runs in IO, and in the case of error,
 -- returns a CommandResult in Left.
---
 type System = EitherT CommandResult IO
 
--- The results from a command.
---
--- (exit_code, stdout, stderr)
---
-type CommandResult = (ExitCode, String, String)
+-- | The results from a command.
+type CommandResult = ( ExitCode  -- ^ Exit code.
+                     , String    -- ^ stdout.
+                     , String    -- ^ stderr.
+                     )
 
--- systemCall command args input
---
--- Runs |command| with |args| and |input|.
---
-systemCall :: String -> [String] -> String -> System CommandResult
+-- | Runs a command with args and input.
+systemCall :: String    -- ^ The command to run.
+           -> [String]  -- ^ The arguments.
+           -> String    -- ^ The input.
+           -> System CommandResult
 systemCall command args input =
     liftIO (readProcessWithExitCode command args input) >>=
         \case
             result@(ExitSuccess,   _, _) -> right result
             result@(ExitFailure _, _, _) -> left result
 
--- systemCall' command args
---
--- Like systemCall, but with no input.
---
-systemCall' :: String -> [String] -> System CommandResult
-systemCall' command args = systemCall command args []
+-- | Like 'systemCall', but with no input.
+systemCall' :: String    -- ^ The command to run.
+            -> [String]  -- ^ The arguments.
+            -> System CommandResult
+systemCall' command args = systemCall command args ""
 
--- systemCallWithDefault def command args input
---
--- Like systemCall, but if the command returns ExitFailure, return |def| in IO.
--- Otherwise, return the output in IO.
---
-systemCallWithDefault :: String -> String -> [String] -> String -> IO String
+-- | Like 'systemCall', but if the command returns ExitFailure, return a default value in IO. Otherwise, return the
+-- output in IO.
+systemCallWithDefault :: String    -- ^ Default value
+                      -> String    -- ^ The command to run.
+                      -> [String]  -- ^ The arguments.
+                      -> String    -- ^ The input.
+                      -> IO String
 systemCallWithDefault def command args input =
     eitherT onFailure onSuccess $ systemCall command args input
   where
@@ -53,10 +52,7 @@ systemCallWithDefault def command args input =
     onSuccess :: CommandResult -> IO String
     onSuccess (_, out, _) = pure out
 
--- systemCallReverse command args input
---
--- Like systemCall, but a success is a failure and vice versa.
---
+-- Like 'systemCall', but a success is a failure and vice versa.
 systemCallReverse :: String -> [String] -> String -> System CommandResult
 systemCallReverse command args input =
     liftIO (readProcessWithExitCode command args input) >>=
@@ -64,17 +60,11 @@ systemCallReverse command args input =
             result@(ExitSuccess,   _, _) -> left result
             result@(ExitFailure _, _, _) -> right result
 
--- systemCallReverse' command args
---
--- Like systemCallReverse, but with no input.
---
+-- Like 'systemCallReverse', but with no input.
 systemCallReverse' :: String -> [String] -> System CommandResult
 systemCallReverse' command args = systemCallReverse command args []
 
--- fatalCall command args input
---
--- Like systemCall, but if the command returns ExitFailure, print stderr and
--- exit. Otherwise, return the output in IO.
+-- Like 'systemCall', but if the command returns ExitFailure, print stderr and exit. Otherwise, return the output in IO.
 fatalCall :: String -> [String] -> String -> IO String
 fatalCall command args input =
     eitherT onFailure onSuccess $ systemCall command args input
@@ -87,10 +77,7 @@ fatalCall command args input =
     onSuccess :: CommandResult -> IO String
     onSuccess (_, out, _) = pure out
 
--- fatalCall' command args
---
--- Like fatalCall, but with no input.
---
+-- Like 'fatalCall', but with no input.
 fatalCall' :: String -> [String] -> IO String
 fatalCall' command args = fatalCall command args []
 
